@@ -1,6 +1,5 @@
 package com.example.trabalhopratico1.ui.screens
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -9,12 +8,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.trabalhopratico1.ui.theme.TrabalhoPratico1Theme
 
+// Data class para representar uma tarefa com estado de conclusão
+data class Task(val name: String, var done: Boolean = false)
+
 @Composable
 fun ToDoScreen() {
-    var tasks by remember { mutableStateOf(listOf<String>()) }
+    var tasks by remember { mutableStateOf(listOf<Task>()) }
     var input by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.padding(16.dp)) {
+        // Campo de texto
         OutlinedTextField(
             value = input,
             onValueChange = { input = it },
@@ -24,28 +27,52 @@ fun ToDoScreen() {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Button(onClick = {
-            if (input.isNotBlank()) {
-                tasks = tasks + input
-                input = ""
+        // Botões de adicionar e limpar todas
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = {
+                if (input.isNotBlank()) {
+                    tasks = tasks + Task(input)
+                    input = ""
+                }
+            }) {
+                Text("Adicionar")
             }
-        }) {
-            Text("Adicionar")
+
+            Button(onClick = {
+                tasks = emptyList()
+            }) {
+                Text("Limpar todas")
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Lista de tarefas com checkbox
         Text("Tarefas:")
-        tasks.forEach { task ->
-            Text(
-                text = "- $task (clique para remover)",
+        tasks.forEachIndexed { index, task ->
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 4.dp)
-                    .clickable {
-                        tasks = tasks - task
-                    }
-            )
+                    .padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = task.name,
+                    modifier = Modifier.weight(1f)
+                )
+                Checkbox(
+                    checked = task.done,
+                    onCheckedChange = { checked ->
+                        tasks = tasks.toMutableList().also {
+                            it[index] = it[index].copy(done = checked)
+                        }
+                    },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = MaterialTheme.colorScheme.primary.copy(green = 1f) // verde forte
+                    )
+                )
+
+            }
         }
     }
 }
