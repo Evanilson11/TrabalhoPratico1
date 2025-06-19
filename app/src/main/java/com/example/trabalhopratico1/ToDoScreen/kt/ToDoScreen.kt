@@ -5,17 +5,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.trabalhopratico1.ui.theme.TrabalhoPratico1Theme
 
-// Modelo da Tarefa
-data class Task(
-    val title: String,
-    val isDone: Boolean = false
-)
+// Modelo de dados
+data class Task(val title: String, val isDone: Boolean = false)
 
-// Tipos de filtro
+// Opções de filtro
 enum class FilterOption { ALL, DONE, TODO }
 
 @Composable
@@ -24,79 +21,87 @@ fun ToDoScreen() {
     var input by remember { mutableStateOf("") }
     var filter by remember { mutableStateOf(FilterOption.ALL) }
 
+    // Aplicar filtro
     val filteredTasks = when (filter) {
         FilterOption.ALL -> tasks
         FilterOption.DONE -> tasks.filter { it.isDone }
         FilterOption.TODO -> tasks.filter { !it.isDone }
     }
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        // Campo de texto para nova tarefa
-        OutlinedTextField(
-            value = input,
-            onValueChange = { input = it },
-            label = { Text("Nova tarefa") },
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Text("Lista de Tarefas", style = MaterialTheme.typography.headlineSmall)
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Entrada e botão Adicionar
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Botão Adicionar
-        Button(onClick = {
-            if (input.isNotBlank()) {
-                tasks = tasks + Task(title = input)
-                input = ""
+        ) {
+            OutlinedTextField(
+                value = input,
+                onValueChange = { input = it },
+                label = { Text("Nova tarefa") },
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(onClick = {
+                if (input.isNotBlank()) {
+                    tasks = tasks + Task(input)
+                    input = ""
+                }
+            }) {
+                Text("Adicionar")
             }
-        }) {
-            Text("Adicionar")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Filtros
+        // Botões de filtro
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterButton("Todas", filter == FilterOption.ALL) { filter = FilterOption.ALL }
-            FilterButton("Concluídas", filter == FilterOption.DONE) { filter = FilterOption.DONE }
-            FilterButton("Por fazer", filter == FilterOption.TODO) { filter = FilterOption.TODO }
+            FilterButton("Feitas", filter == FilterOption.DONE) { filter = FilterOption.DONE }
+            FilterButton("Por Fazer", filter == FilterOption.TODO) { filter = FilterOption.TODO }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Lista de tarefas filtradas
+        // Lista de tarefas
         filteredTasks.forEach { task ->
             Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .padding(vertical = 4.dp)
             ) {
-                Row {
-                    Checkbox(
-                        checked = task.isDone,
-                        onCheckedChange = {
-                            tasks = tasks.map {
-                                if (it == task) it.copy(isDone = !it.isDone) else it
-                            }
-                        },
-                        colors = CheckboxDefaults.colors(checkedColor = MaterialTheme.colorScheme.primary)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = task.title)
-                }
-
-                IconButton(onClick = {
-                    tasks = tasks - task
-                }) {
-                    Icon(Icons.Default.Delete, contentDescription = "Remover tarefa")
+                Checkbox(
+                    checked = task.isDone,
+                    onCheckedChange = {
+                        tasks = tasks.map {
+                            if (it == task) it.copy(isDone = !it.isDone) else it
+                        }
+                    }
+                )
+                Text(
+                    text = task.title,
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(onClick = { tasks = tasks - task }) {
+                    Icon(Icons.Default.Delete, contentDescription = "Remover")
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Botão para limpar todas as tarefas
+        // Botão para limpar todas
         Button(
             onClick = { tasks = emptyList() },
+            modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
         ) {
             Text("Limpar todas")
@@ -108,10 +113,9 @@ fun ToDoScreen() {
 fun FilterButton(text: String, selected: Boolean, onClick: () -> Unit) {
     Button(
         onClick = onClick,
-        colors = if (selected)
-            ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-        else
-            ButtonDefaults.buttonColors()
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
+        )
     ) {
         Text(text)
     }
